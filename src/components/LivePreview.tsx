@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Monitor, Smartphone, Tablet, ShoppingCart, Info, CheckCircle, Shield, Zap, Search, Menu, ArrowRight, User, Mail, MapPin, Phone, Calendar, BookOpen, Briefcase, Image as ImageIcon, Layout, Star, CreditCard, Users, FileText, LogIn, Settings, List, Grid, Hexagon, Heart, Truck, RefreshCw, Download, Github, Linkedin, Twitter, Instagram, ExternalLink, ChevronRight, Clock, ChevronDown, Play, Video, Award, Server, Database, Code, Terminal, BarChart, PieChart, Globe, DollarSign, Euro, PoundSterling } from 'lucide-react';
+import { X, Monitor, Smartphone, Tablet, ShoppingCart, Info, CheckCircle, Shield, Zap, Search, Menu, ArrowRight, User, Mail, MapPin, Phone, Calendar, BookOpen, Briefcase, Image as ImageIcon, Layout, Star, CreditCard, Users, FileText, LogIn, Settings, List, Grid, Hexagon, Heart, Truck, RefreshCw, Download, Github, Linkedin, Twitter, Instagram, ExternalLink, ChevronRight, Clock, ChevronDown, Play, Video, Award, Server, Database, Code, Terminal, BarChart, PieChart, Globe, DollarSign, Euro, PoundSterling, QrCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Theme } from '../types';
 import { cn } from '../lib/utils';
@@ -19,6 +19,9 @@ export const LivePreview: React.FC<LivePreviewProps> = ({ theme, onClose }) => {
   const [showLocationToast, setShowLocationToast] = useState(false);
   const [detectedRegion, setDetectedRegion] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showCartToast, setShowCartToast] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'paypal' | 'upi'>('card');
   
   const details = CATEGORY_DETAILS[theme.category];
 
@@ -27,6 +30,25 @@ export const LivePreview: React.FC<LivePreviewProps> = ({ theme, onClose }) => {
     setTimeout(() => {
       setIsProcessing(false);
       setActivePage('Dashboard');
+    }, 2000);
+  };
+
+  const handleAddToCart = () => {
+    setShowCartToast(true);
+    setTimeout(() => setShowCartToast(false), 3000);
+  };
+
+  const handleBuyNow = () => {
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setShowPaymentModal(false);
+      alert('Thank you for your purchase! The theme files have been sent to your email.');
     }, 2000);
   };
 
@@ -3574,6 +3596,19 @@ export const LivePreview: React.FC<LivePreviewProps> = ({ theme, onClose }) => {
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 mr-4">
+            <Globe size={16} className="text-slate-400" />
+            <select 
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as any)}
+              className="bg-slate-800 text-slate-200 text-xs rounded px-2 py-1 outline-none border border-slate-700 focus:border-brand-500"
+            >
+              <option value="USD">USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="INR">INR (₹)</option>
+            </select>
+          </div>
           <button 
             onClick={() => setShowDetails(!showDetails)}
             className={cn(
@@ -3584,9 +3619,19 @@ export const LivePreview: React.FC<LivePreviewProps> = ({ theme, onClose }) => {
           >
             <Info size={20} />
           </button>
-          <span className="font-bold text-lg">${theme.price}</span>
-          <button className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-colors">
+          <span className="font-bold text-lg">{formatPrice(theme.price)}</span>
+          <button 
+            onClick={handleAddToCart}
+            className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-colors"
+          >
             <ShoppingCart size={16} />
+            <span className="hidden sm:inline">Add to Cart</span>
+          </button>
+          <button 
+            onClick={handleBuyNow}
+            className="bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 transition-colors"
+          >
+            <CreditCard size={16} />
             <span className="hidden sm:inline">Buy Now</span>
           </button>
         </div>
@@ -3879,6 +3924,189 @@ export const LivePreview: React.FC<LivePreviewProps> = ({ theme, onClose }) => {
               <X size={16} />
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Cart Toast */}
+      <AnimatePresence>
+        {showCartToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: 50 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50 bg-white rounded-lg shadow-xl border border-slate-200 p-4 flex items-center gap-4 max-w-sm"
+          >
+            <div className="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center text-brand-600 flex-shrink-0">
+              <CheckCircle size={20} />
+            </div>
+            <div>
+              <h4 className="font-bold text-slate-900 text-sm">Added to Cart</h4>
+              <p className="text-xs text-slate-500">
+                <span className="font-bold text-slate-700">{theme.title}</span> has been added to your cart.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Payment Modal */}
+      <AnimatePresence>
+        {showPaymentModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative z-10 overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 className="font-bold text-lg text-slate-900">Secure Checkout</h3>
+                <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-600">
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="flex items-center gap-4 mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <img src={theme.image} alt={theme.title} className="w-16 h-12 object-cover rounded-lg" />
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{theme.title}</h4>
+                    <p className="text-xs text-slate-500">{theme.category} Theme</p>
+                  </div>
+                  <div className="ml-auto font-bold text-lg text-brand-600">
+                    {formatPrice(theme.price)}
+                  </div>
+                </div>
+
+                <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Payment Method</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setPaymentMethod('card')}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 font-bold text-xs transition-all",
+                          paymentMethod === 'card' 
+                            ? "border-brand-600 bg-brand-50 text-brand-700" 
+                            : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                        )}
+                      >
+                        <CreditCard size={18} /> Card
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setPaymentMethod('upi')}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 font-bold text-xs transition-all",
+                          paymentMethod === 'upi' 
+                            ? "border-brand-600 bg-brand-50 text-brand-700" 
+                            : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                        )}
+                      >
+                        <Smartphone size={18} /> UPI
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setPaymentMethod('paypal')}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 font-bold text-xs transition-all",
+                          paymentMethod === 'paypal' 
+                            ? "border-brand-600 bg-brand-50 text-brand-700" 
+                            : "border-slate-200 hover:bg-slate-50 text-slate-600"
+                        )}
+                      >
+                        <span className="italic font-serif text-lg leading-none">P</span> PayPal
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 min-h-[180px]">
+                    {paymentMethod === 'card' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-3"
+                      >
+                        <input required type="text" placeholder="Card Number" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input required type="text" placeholder="MM / YY" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm" />
+                          <input required type="text" placeholder="CVC" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm" />
+                        </div>
+                        <input required type="text" placeholder="Cardholder Name" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm" />
+                      </motion.div>
+                    )}
+
+                    {paymentMethod === 'upi' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="space-y-4 py-2"
+                      >
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                          <p className="text-sm text-slate-600 mb-2">Scan QR Code to Pay</p>
+                          <div className="w-32 h-32 bg-white mx-auto border border-slate-200 rounded-lg flex items-center justify-center">
+                             <QrCode size={80} className="text-slate-800" />
+                          </div>
+                        </div>
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-slate-200"></div>
+                          </div>
+                          <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-white px-2 text-slate-500">Or enter UPI ID</span>
+                          </div>
+                        </div>
+                        <input required type="text" placeholder="username@upi" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 outline-none text-sm" />
+                      </motion.div>
+                    )}
+
+                    {paymentMethod === 'paypal' && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="flex flex-col items-center justify-center h-full py-8 space-y-4"
+                      >
+                        <p className="text-center text-slate-600 text-sm">
+                          You will be redirected to PayPal to complete your purchase securely.
+                        </p>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isProcessing}
+                    className="w-full bg-brand-600 text-white py-4 rounded-xl font-bold hover:bg-brand-500 transition-colors shadow-lg shadow-brand-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                  >
+                    {isProcessing ? (
+                      <>
+                        <RefreshCw size={20} className="animate-spin" /> Processing...
+                      </>
+                    ) : (
+                      <>
+                        Pay {formatPrice(theme.price)}
+                      </>
+                    )}
+                  </button>
+                </form>
+                
+                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-400">
+                  <Shield size={12} />
+                  <span>256-bit SSL Encrypted Payment</span>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

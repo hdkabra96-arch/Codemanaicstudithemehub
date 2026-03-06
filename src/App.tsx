@@ -138,13 +138,7 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="p-6 bg-gradient-to-br from-brand-600 to-indigo-600 rounded-2xl text-white">
-                    <h4 className="font-display font-bold mb-2">Need a custom theme?</h4>
-                    <p className="text-xs text-brand-100 mb-4">Our AI can help you find or generate the perfect starting point.</p>
-                    <button className="w-full py-2 bg-white text-brand-600 rounded-lg text-xs font-bold hover:bg-brand-50 transition-colors">
-                      Try AI Assistant
-                    </button>
-                  </div>
+
                 </div>
               </aside>
 
